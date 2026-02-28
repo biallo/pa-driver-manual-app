@@ -1,0 +1,69 @@
+{
+  "name": "pa-driver-manual-app",
+  "private": true,
+  "version": "1.0.0",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "extract:manual": "swift scripts/extract_manual.swift",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "desktop:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "desktop:dist": "npm run build && electron-builder",
+    "desktop:dist:mac": "npm run build && electron-builder --mac dir",
+    "desktop:dist:mac:arm64": "npm run build && electron-builder --mac dir --arm64",
+    "desktop:dist:mac:tgz": "npm run desktop:dist:mac && cd release/mac && tar -czf \"PA Driver Manual App-mac-x64.tar.gz\" \"PA Driver Manual App.app\"",
+    "desktop:dist:win": "npm run build && electron-builder --win",
+    "desktop:dist:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^37.2.3",
+    "electron-builder": "^26.0.12",
+    "pdfjs-dist": "^5.4.296",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "wait-on": "^8.0.3",
+    "vite": "^5.4.11"
+  },
+  "build": {
+    "appId": "com.biallo.pa-driver-manual",
+    "productName": "PA Driver Manual App",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/extracted/questions-source{,/**}",
+      "electron/**/*",
+      "package.json"
+    ],
+    "electronLanguages": [
+      "en",
+      "zh_CN"
+    ],
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education"
+    }
+  }
+}
