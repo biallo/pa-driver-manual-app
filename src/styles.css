@@ -46,6 +46,20 @@ body {
   font-size: 20px;
 }
 
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.topbar-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex: 0 0 32px;
+}
+
 .tabs {
   display: flex;
   gap: 8px;
@@ -448,6 +462,24 @@ body {
 }
 
 @media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .topbar-brand {
+    width: 100%;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+  }
+
+  .topbar-icon {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
   .layout {
     grid-template-columns: 1fr;
     height: auto;

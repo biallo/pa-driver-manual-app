@@ -564,7 +564,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <h1>宾夕法尼亚驾驶手册学习与考试</h1>
+        <div className="topbar-brand">
+          <img className="topbar-icon" src={assetUrl('/favicon.png')} alt="应用图标" />
+          <h1>宾夕法尼亚驾驶手册学习与考试</h1>
+        </div>
         <div className="tabs">
           <button
             type="button"
