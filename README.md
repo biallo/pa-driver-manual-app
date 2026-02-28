@@ -5,6 +5,14 @@
 - Web 开发模式（Vite）
 - 桌面可执行安装包（Electron）
 
+## 应用截图
+
+<p align="center">
+  <img src="./public/screenshot/screenshot-1.png" alt="练习题页面" width="32%" />
+  <img src="./public/screenshot/screenshot-2.png" alt="题目详情页面" width="32%" />
+  <img src="./public/screenshot/screenshot-3.png" alt="考试模式页面" width="32%" />
+</p>
+
 ## 1) Web 本地运行
 
 ```bash
