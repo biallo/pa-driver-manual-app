@@ -44,11 +44,3 @@ npm run desktop:dist:mac
 npm run desktop:dist:win
 npm run desktop:dist:linux
 ```
-
-## PDF 静态数据提取
-
-如需重新从 `public/manual.pdf` 生成静态题库数据：
-
-```bash
-npm run extract:manual
-```

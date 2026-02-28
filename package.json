@@ -15,7 +15,7 @@
     "desktop:dist:mac:arm64": "npm run build && electron-builder --mac dir --arm64",
     "desktop:dist:mac:tgz": "npm run desktop:dist:mac && cd release/mac && tar -czf \"PA Driver Manual App-mac-x64.tar.gz\" \"PA Driver Manual App.app\"",
     "desktop:dist:win": "npm run build && electron-builder --win",
-    "desktop:dist:linux": "npm run build && electron-builder --linux"
+    "desktop:dist:linux": "npm run build && electron-builder --linux",
   },
   "dependencies": {},
   "devDependencies": {
@@ -47,18 +47,21 @@
       "zh_CN"
     ],
     "mac": {
+      "icon": "build/icons/icon.icns",
       "target": [
         "dir"
       ],
       "category": "public.app-category.education"
     },
     "win": {
+      "icon": "build/icons/icon.ico",
       "target": [
         "nsis",
         "portable"
       ]
     },
     "linux": {
+      "icon": "build/icons/icon-1024.png",
       "target": [
         "AppImage",
         "deb"
