@@ -38,6 +38,7 @@
     },
     "files": [
       "dist/**/*",
+      "!dist/extracted/pages{,/**}",
       "!dist/extracted/questions-source{,/**}",
       "electron/**/*",
       "package.json"

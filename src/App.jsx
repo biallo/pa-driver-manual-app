@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const DATA_URL = '/data/manual-static.json'
-const MARK_URL = '/data/question-image-marks.json'
 const PDF_URL = '/manual.pdf'
 const IS_FILE_PROTOCOL = typeof window !== 'undefined' && window.location.protocol === 'file:'
-const FORCE_IMAGE_QUESTIONS = new Set([15, 19, 41, 44, 52, 53, 55, 56, 58, 123])
+const IMAGE_QUESTION_IDS = [1, 2, 3, 4, 5, 6, 11, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23, 24, 25, 41, 42, 43, 44, 45, 52, 53, 55, 56, 58, 88, 98, 99, 123]
+const IMAGE_QUESTION_SET = new Set(IMAGE_QUESTION_IDS)
 const EXAM_QUESTION_COUNT = 18
-const EXAM_PASS_SCORE = 15
+const EXAM_PASS_SCORE = 1
 
 function assetUrl(path) {
   if (!path) return path
@@ -21,30 +21,12 @@ function withVersion(path, version) {
   return `${path}${sep}v=${encodeURIComponent(version)}`
 }
 
-function clamp01(v) {
-  return Math.max(0, Math.min(1, Number(v) || 0))
+function questionImagePath(questionIndex) {
+  return `/extracted/questions/q-${String(questionIndex).padStart(4, '0')}.jpg`
 }
 
-function toFixed4(n) {
-  return Math.round(n * 10000) / 10000
-}
-
-function formatMark(mark) {
-  if (!mark) return null
-  return {
-    x: toFixed4(clamp01(mark.x)),
-    y: toFixed4(clamp01(mark.y)),
-    w: toFixed4(Math.max(0.01, clamp01(mark.w))),
-    h: toFixed4(Math.max(0.01, clamp01(mark.h)))
-  }
-}
-
-function sourceImagePath(questionIndex) {
-  return `/extracted/questions-source/q-${String(questionIndex).padStart(4, '0')}.jpg`
-}
-
-function PageImage({ image, enabled, version }) {
-  if (!enabled || !image) return null
+function PageImage({ image, version }) {
+  if (!image) return null
   return (
     <img
       className="question-page-img"
@@ -57,294 +39,11 @@ function PageImage({ image, enabled, version }) {
   )
 }
 
-function shouldShowQuestionImage(stem) {
-  if (!stem) return false
-  const s = String(stem)
-  const keys = ['此标志', '该标志', '这个标志', '图示', '下图', '如下图', '如图', '路标', '标牌', '形状和颜色']
-  return keys.some((k) => s.includes(k))
-}
-
 function ManualPdf() {
   return (
     <section className="viewer">
       <iframe title="manual" src={assetUrl(PDF_URL)} className="pdf-frame" />
     </section>
-  )
-}
-
-function MarkingTool({ questions, version }) {
-  const imgRef = useRef(null)
-  const previewRef = useRef(null)
-  const boxRef = useRef(null)
-
-  const candidates = useMemo(() => {
-    return questions
-      .map((q, idx) => ({
-        index: idx + 1,
-        stem: q.stem,
-        show: shouldShowQuestionImage(q.stem) || !!q.image || FORCE_IMAGE_QUESTIONS.has(idx + 1)
-      }))
-      .filter((q) => q.show)
-  }, [questions])
-
-  const [pos, setPos] = useState(0)
-  const [marks, setMarks] = useState({})
-  const [jsonInput, setJsonInput] = useState('')
-  const [dragStart, setDragStart] = useState(null)
-  const [dragging, setDragging] = useState(false)
-  const [sourceError, setSourceError] = useState(false)
-
-  useEffect(() => {
-    fetch(assetUrl(MARK_URL))
-      .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => {
-        if (!data || typeof data !== 'object') return
-        setMarks(data)
-      })
-      .catch(() => {})
-  }, [])
-
-  const current = candidates[pos] || null
-  const qIndex = current?.index
-  const source = qIndex ? assetUrl(withVersion(sourceImagePath(qIndex), version)) : ''
-
-  const mark = useMemo(() => {
-    if (!qIndex) return null
-    return formatMark(marks[String(qIndex)])
-  }, [marks, qIndex])
-
-  const setCurrentMark = (nextMark) => {
-    if (!qIndex) return
-    const normalized = formatMark(nextMark)
-    if (!normalized) return
-    setMarks((prev) => ({ ...prev, [String(qIndex)]: normalized }))
-  }
-
-  const clearCurrentMark = () => {
-    if (!qIndex) return
-    setMarks((prev) => {
-      const next = { ...prev }
-      delete next[String(qIndex)]
-      return next
-    })
-  }
-
-  const onPickPoint = (e) => {
-    if (!boxRef.current) return null
-    const rect = boxRef.current.getBoundingClientRect()
-    const x = clamp01((e.clientX - rect.left) / rect.width)
-    const y = clamp01((e.clientY - rect.top) / rect.height)
-    return { x, y }
-  }
-
-  const onMouseDown = (e) => {
-    e.preventDefault()
-    const p = onPickPoint(e)
-    if (!p) return
-    setDragStart(p)
-    setDragging(true)
-  }
-
-  const onMouseMove = (e) => {
-    if (!dragging || !dragStart) return
-    const p = onPickPoint(e)
-    if (!p) return
-    const x = Math.min(dragStart.x, p.x)
-    const y = Math.min(dragStart.y, p.y)
-    const w = Math.max(0.01, Math.abs(dragStart.x - p.x))
-    const h = Math.max(0.01, Math.abs(dragStart.y - p.y))
-    setCurrentMark({ x, y, w, h })
-  }
-
-  const onMouseUp = () => {
-    setDragging(false)
-    setDragStart(null)
-  }
-
-  useEffect(() => {
-    const canvas = previewRef.current
-    const img = imgRef.current
-    if (!canvas || !img || !mark) return
-    if (!img.naturalWidth || !img.naturalHeight) return
-
-    const sx = Math.floor(mark.x * img.naturalWidth)
-    const sy = Math.floor(mark.y * img.naturalHeight)
-    const sw = Math.max(1, Math.floor(mark.w * img.naturalWidth))
-    const sh = Math.max(1, Math.floor(mark.h * img.naturalHeight))
-
-    const maxW = 380
-    const ratio = sw / sh
-    const dw = Math.min(maxW, sw)
-    const dh = Math.max(1, Math.round(dw / Math.max(0.01, ratio)))
-
-    canvas.width = dw
-    canvas.height = dh
-    const ctx = canvas.getContext('2d')
-    ctx.clearRect(0, 0, dw, dh)
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh)
-  }, [mark, source])
-
-  const exportJson = () => {
-    const text = JSON.stringify(marks, null, 2)
-    const blob = new Blob([text], { type: 'application/json' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = 'question-image-marks.json'
-    a.click()
-    URL.revokeObjectURL(a.href)
-  }
-
-  const copyJson = async () => {
-    const text = JSON.stringify(marks, null, 2)
-    try {
-      await navigator.clipboard.writeText(text)
-      alert('已复制 JSON 到剪贴板')
-    } catch {
-      alert('复制失败，请手动复制文本框内容')
-    }
-  }
-
-  const importJson = () => {
-    try {
-      const parsed = JSON.parse(jsonInput || '{}')
-      if (!parsed || typeof parsed !== 'object') throw new Error('格式错误')
-      setMarks(parsed)
-      alert('已导入 JSON')
-    } catch {
-      alert('JSON 格式错误')
-    }
-  }
-
-  if (!current) {
-    return <div className="quiz-page">暂无可标注题目。</div>
-  }
-
-  const showRect = mark
-    ? {
-        left: `${mark.x * 100}%`,
-        top: `${mark.y * 100}%`,
-        width: `${mark.w * 100}%`,
-        height: `${mark.h * 100}%`
-      }
-    : null
-
-  return (
-    <main className="quiz-page mark-page" onMouseUp={onMouseUp}>
-      <div className="mark-toolbar">
-        <button type="button" onClick={() => setPos((p) => Math.max(0, p - 1))}>
-          上一题
-        </button>
-        <div>
-          题号 {qIndex} / {candidates[candidates.length - 1]?.index}（第 {pos + 1}/{candidates.length} 个图题）
-        </div>
-        <button type="button" onClick={() => setPos((p) => Math.min(candidates.length - 1, p + 1))}>
-          下一题
-        </button>
-      </div>
-
-      <div className="mark-stem">{current.stem}</div>
-
-      <div
-        className="mark-canvas-wrap"
-        ref={boxRef}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMouseUp}
-      >
-        <img
-          ref={imgRef}
-          src={source}
-          alt={`题目 ${qIndex} 原图`}
-          className="mark-source"
-          draggable={false}
-          onDragStart={(e) => e.preventDefault()}
-          onLoad={() => setSourceError(false)}
-          onError={() => setSourceError(true)}
-        />
-        {showRect && <div className="mark-rect" style={showRect} />}
-      </div>
-
-      {sourceError && (
-        <div className="status error">
-          未找到原始题图：{sourceImagePath(qIndex)}。先运行 `swift scripts/extract_manual.swift` 生成 sources。
-        </div>
-      )}
-
-      <div className="mark-controls">
-        <label>
-          x
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="1"
-            value={mark?.x ?? 0.55}
-            onChange={(e) => setCurrentMark({ ...(mark || {}), x: e.target.value, y: mark?.y ?? 0.05, w: mark?.w ?? 0.35, h: mark?.h ?? 0.9 })}
-          />
-        </label>
-        <label>
-          y
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="1"
-            value={mark?.y ?? 0.05}
-            onChange={(e) => setCurrentMark({ ...(mark || {}), y: e.target.value, x: mark?.x ?? 0.55, w: mark?.w ?? 0.35, h: mark?.h ?? 0.9 })}
-          />
-        </label>
-        <label>
-          w
-          <input
-            type="number"
-            step="0.01"
-            min="0.01"
-            max="1"
-            value={mark?.w ?? 0.35}
-            onChange={(e) => setCurrentMark({ ...(mark || {}), w: e.target.value, x: mark?.x ?? 0.55, y: mark?.y ?? 0.05, h: mark?.h ?? 0.9 })}
-          />
-        </label>
-        <label>
-          h
-          <input
-            type="number"
-            step="0.01"
-            min="0.01"
-            max="1"
-            value={mark?.h ?? 0.9}
-            onChange={(e) => setCurrentMark({ ...(mark || {}), h: e.target.value, x: mark?.x ?? 0.55, y: mark?.y ?? 0.05, w: mark?.w ?? 0.35 })}
-          />
-        </label>
-        <button type="button" onClick={() => setCurrentMark({ x: 0.55, y: 0.05, w: 0.35, h: 0.9 })}>
-          默认右侧
-        </button>
-        <button type="button" onClick={clearCurrentMark}>清除本题</button>
-      </div>
-
-      <div className="mark-preview-wrap">
-        <div className="mark-preview-title">当前裁剪预览</div>
-        <canvas ref={previewRef} className="mark-preview" />
-      </div>
-
-      <div className="mark-export">
-        <button type="button" onClick={exportJson}>
-          导出 question-image-marks.json
-        </button>
-        <button type="button" onClick={copyJson}>
-          复制 JSON
-        </button>
-        <button type="button" onClick={importJson}>
-          导入下方 JSON
-        </button>
-      </div>
-
-      <textarea
-        className="mark-json"
-        placeholder="粘贴或编辑 question-image-marks.json"
-        value={jsonInput}
-        onChange={(e) => setJsonInput(e.target.value)}
-      />
-    </main>
   )
 }
 
@@ -375,18 +74,19 @@ function Quiz({ questions, version }) {
       </div>
 
       {questions.map((q, index) => {
+        const questionNo = index + 1
         const choice = selected[q.id]
         const done = !!submitted[q.id]
         const ok = done && choice === q.correct
         const hasAnswer = !!q.correct
-        const showImage = !!q.image
+        const image = IMAGE_QUESTION_SET.has(questionNo) ? questionImagePath(questionNo) : null
 
         return (
           <div className="question-card" key={q.id}>
             <div className="question-title">
-              {index + 1}. {q.stem}
+              {questionNo}. {q.stem}
             </div>
-            <PageImage image={q.image} enabled={showImage} version={version} />
+            <PageImage image={image} version={version} />
             <div className="options">
               {optionOrder
                 .filter((key) => q.options[key])
@@ -435,7 +135,13 @@ function pickRandomQuestions(questions, count) {
 
 function Exam({ questions, version }) {
   const optionOrder = ['A', 'B', 'C', 'D']
-  const eligible = useMemo(() => questions.filter((q) => !!q.correct), [questions])
+  const eligible = useMemo(
+    () =>
+      questions
+        .map((q, idx) => ({ ...q, questionNo: idx + 1 }))
+        .filter((q) => !!q.correct),
+    [questions]
+  )
   const fireworkBursts = useMemo(
     () => [
       { x: '12%', y: '22%', hue: 18, delay: '0s' },
@@ -512,14 +218,14 @@ function Exam({ questions, version }) {
         const choice = selected[q.id]
         const done = !!submitted[q.id]
         const ok = done && choice === q.correct
-        const showImage = !!q.image
+        const image = IMAGE_QUESTION_SET.has(q.questionNo) ? questionImagePath(q.questionNo) : null
 
         return (
           <div className="question-card" key={q.id}>
             <div className="question-title">
               {index + 1}. {q.stem}
             </div>
-            <PageImage image={q.image} enabled={showImage} version={version} />
+            <PageImage image={image} version={version} />
             <div className="options">
               {optionOrder
                 .filter((key) => q.options[key])
@@ -641,8 +347,6 @@ export default function App() {
           <Exam questions={questions} version={version} />
         </main>
       )}
-
-      {!loading && !error && tab === 'mark' && <MarkingTool questions={questions} version={version} />}
     </div>
   )
 }
