@@ -436,6 +436,17 @@ function pickRandomQuestions(questions, count) {
 function Exam({ questions, version }) {
   const optionOrder = ['A', 'B', 'C', 'D']
   const eligible = useMemo(() => questions.filter((q) => !!q.correct), [questions])
+  const fireworkBursts = useMemo(
+    () => [
+      { x: '12%', y: '22%', hue: 18, delay: '0s' },
+      { x: '28%', y: '14%', hue: 220, delay: '0.18s' },
+      { x: '48%', y: '24%', hue: 145, delay: '0.36s' },
+      { x: '64%', y: '16%', hue: 280, delay: '0.08s' },
+      { x: '82%', y: '26%', hue: 45, delay: '0.3s' },
+      { x: '38%', y: '34%', hue: 330, delay: '0.42s' },
+    ],
+    []
+  )
   const [seed, setSeed] = useState(0)
   const [selected, setSelected] = useState({})
   const [submitted, setSubmitted] = useState({})
@@ -457,12 +468,29 @@ function Exam({ questions, version }) {
 
   const answered = useMemo(() => Object.values(submitted).filter(Boolean).length, [submitted])
   const finished = examQuestions.length > 0 && answered === examQuestions.length
-  const passed = finished && score >= EXAM_PASS_SCORE
-  const resultText = finished ? (passed ? '考试通过' : '考试未通过') : '未完成'
-  const resultClass = finished ? (passed ? 'ok' : 'bad') : 'neutral'
+  const passed = score >= EXAM_PASS_SCORE
+  const resultText = passed ? '考试通过' : finished ? '考试未通过' : '未完成'
+  const resultClass = passed ? 'ok' : finished ? 'bad' : 'neutral'
 
   return (
     <div className="quiz-wrap">
+      {passed && (
+        <div className="fireworks" aria-hidden="true">
+          {fireworkBursts.map((fw, idx) => (
+            <span
+              key={idx}
+              className="firework"
+              style={{
+                '--x': fw.x,
+                '--y': fw.y,
+                '--h': fw.hue,
+                '--d': fw.delay
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="quiz-summary exam-summary">
         <div>考试题数: {examQuestions.length}</div>
         <div>
