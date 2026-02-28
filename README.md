@@ -1,4 +1,11 @@
-# 宾夕法尼亚驾驶手册学习与考试
+<p align="center">
+  <img src="./public/app-icon.png" alt="app-icon" width="120" />
+</p>
+
+<h1 align="center">宾夕法尼亚驾驶手册学习与考试</h1>
+
+---
+
 
 项目支持两种运行方式：
 
