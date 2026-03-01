@@ -15,7 +15,7 @@
 
 在[这里](https://github.com/biallo/pa-driver-manual-app/releases)下载最新的桌面可执行文件，提供 Mac/Windows/Linux 三种版本。
 
-> Mac 版本可能会遇到提示“无法验证此App不包含恶意软件”或”无法验证开发者"的情况，
+> Mac 版本可能会遇到提示“无法验证此 App 不包含恶意软件”或”无法验证开发者"的情况，
 >
 > 在“系统设置” -> “隐私与安全性”中，找到“安全性”，点击“ 仍要打开 ” 即可。
 
@@ -41,7 +41,7 @@ npm install
 npm run desktop:dev
 ```
 
-## 3) 打包可执行文件
+## 3) 打包桌面可执行文件
 
 可按系统分别打包：
 
