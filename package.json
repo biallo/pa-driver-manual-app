@@ -9,7 +9,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "desktop:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
-    "desktop:dist": "npm run build && electron-builder",
     "desktop:dist:mac": "npm run build && electron-builder --mac dir",
     "desktop:dist:mac:arm64": "npm run build && electron-builder --mac dir --arm64",
     "desktop:dist:mac:tgz": "npm run desktop:dist:mac && cd release/mac && tar -czf \"PA Driver Manual App-mac-x64.tar.gz\" \"PA Driver Manual App.app\"",
