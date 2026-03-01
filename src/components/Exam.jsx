@@ -7,6 +7,7 @@ import {
 } from '../constants/app'
 import { questionImagePath } from '../lib/assets'
 import { pickByAllowedKeys, readStoredJson, saveStoredJson } from '../lib/storage'
+import ConfettiCanvas from './common/ConfettiCanvas'
 import PageImage from './common/PageImage'
 
 function pickRandomQuestions(questions, count) {
@@ -26,17 +27,6 @@ export default function Exam({ questions, version, scrollContainerRef }) {
         .map((q, idx) => ({ ...q, questionNo: idx + 1 }))
         .filter((q) => !!q.correct),
     [questions]
-  )
-  const fireworkBursts = useMemo(
-    () => [
-      { x: '12%', y: '22%', hue: 18, delay: '0s' },
-      { x: '28%', y: '14%', hue: 220, delay: '0.18s' },
-      { x: '48%', y: '24%', hue: 145, delay: '0.36s' },
-      { x: '64%', y: '16%', hue: 280, delay: '0.08s' },
-      { x: '82%', y: '26%', hue: 45, delay: '0.3s' },
-      { x: '38%', y: '34%', hue: 330, delay: '0.42s' }
-    ],
-    []
   )
   const [examIds, setExamIds] = useState(() => {
     const saved = readStoredJson(STORAGE_KEYS.exam, {})
@@ -146,22 +136,7 @@ export default function Exam({ questions, version, scrollContainerRef }) {
 
   return (
     <div className="quiz-wrap">
-      {passed && (
-        <div className="fireworks" aria-hidden="true">
-          {fireworkBursts.map((fw, idx) => (
-            <span
-              key={idx}
-              className="firework"
-              style={{
-                '--x': fw.x,
-                '--y': fw.y,
-                '--h': fw.hue,
-                '--d': fw.delay
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {passed && <ConfettiCanvas active={passed} />}
 
       <div className="quiz-summary exam-summary">
         <div>考试题数: {examQuestions.length}</div>
