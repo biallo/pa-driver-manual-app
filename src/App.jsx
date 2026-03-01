@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 const DATA_URL = '/data/manual-static.json'
 const PDF_URL = '/manual.pdf'
 const IS_FILE_PROTOCOL = typeof window !== 'undefined' && window.location.protocol === 'file:'
+const WEB_BASE_URL = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '')
 const IMAGE_QUESTION_IDS = [1, 2, 3, 4, 5, 6, 11, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23, 24, 25, 41, 42, 43, 44, 45, 52, 53, 55, 56, 58, 88, 98, 99, 123]
 const IMAGE_QUESTION_SET = new Set(IMAGE_QUESTION_IDS)
 const EXAM_QUESTION_COUNT = 18
@@ -10,7 +11,11 @@ const EXAM_PASS_SCORE = 15
 
 function assetUrl(path) {
   if (!path) return path
-  if (!IS_FILE_PROTOCOL) return path
+  if (/^(?:https?:)?\/\//.test(path) || path.startsWith('data:')) return path
+  if (!IS_FILE_PROTOCOL) {
+    const normalized = path.startsWith('/') ? path : `/${path}`
+    return `${WEB_BASE_URL}${normalized}`
+  }
   return path.startsWith('/') ? `.${path}` : path
 }
 
