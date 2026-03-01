@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const DATA_URL = '/data/manual-static.json'
 const PDF_URL = '/manual.pdf'
@@ -48,6 +48,172 @@ function ManualPdf() {
   return (
     <section className="viewer">
       <iframe title="manual" src={assetUrl(PDF_URL)} className="pdf-frame" />
+    </section>
+  )
+}
+
+function ManualReader({ pages, toc, version }) {
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    const uaMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua)
+    const smallViewport = window.matchMedia?.('(max-width: 900px)').matches
+    const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches
+    return uaMobile || (smallViewport && coarsePointer)
+  }, [])
+  const isDesktop = !isMobile
+  const [page, setPage] = useState(1)
+  const [zoom, setZoom] = useState(1)
+  const [imageSrc, setImageSrc] = useState('')
+  const [rendering, setRendering] = useState(false)
+  const [renderError, setRenderError] = useState('')
+  const [touchStart, setTouchStart] = useState(null)
+  const pageScrollRef = useRef(null)
+
+  useEffect(() => {
+    if (!pages.length) return
+    setPage((prev) => Math.min(Math.max(prev, 1), pages.length))
+  }, [pages])
+
+  useEffect(() => {
+    if (!isMobile || !pages.length) return
+    let cancelled = false
+    const pdfSrc = assetUrl(withVersion(PDF_URL, version))
+
+    setRendering(true)
+    setRenderError('')
+    import('./lib/pdfParser')
+      .then((mod) => mod.renderPagePreview(pdfSrc, page, null, Math.max(1, zoom * 1.4)))
+      .then((url) => {
+        if (cancelled) return
+        setImageSrc(url)
+        setRendering(false)
+      })
+      .catch((e) => {
+        if (cancelled) return
+        setImageSrc('')
+        setRendering(false)
+        setRenderError(e?.message || '页面渲染失败')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isMobile, page, pages, version, zoom])
+
+  const tocOptions = toc.length
+    ? toc
+    : pages.map((item) => ({
+        title: `第 ${item.page} 页`,
+        page: item.page
+      }))
+  const zoomLabel = `${Math.round(zoom * 100)}%`
+  const canPrev = page > 1
+  const canNext = page < pages.length
+
+  if (isDesktop) return <ManualPdf />
+
+  if (!pages.length) {
+    return (
+      <section className="manual-reader">
+        <p className="manual-tip">手册内容暂不可用，请稍后重试。</p>
+      </section>
+    )
+  }
+
+  return (
+    <section className="manual-reader">
+      <div className="manual-toolbar">
+        <select aria-label="目录跳转" value={page} onChange={(e) => setPage(Number(e.target.value))}>
+          {tocOptions.map((item, idx) => (
+            <option key={`${item.page}-${idx}`} value={item.page}>
+              {item.title}（第 {item.page} 页）
+            </option>
+          ))}
+        </select>
+        <div className="manual-zoom">
+          <button type="button" onClick={() => setZoom((z) => Math.max(0.8, Number((z - 0.2).toFixed(1))))} disabled={zoom <= 0.8}>
+            缩小
+          </button>
+          <span>{zoomLabel}</span>
+          <button type="button" onClick={() => setZoom((z) => Math.min(2.4, Number((z + 0.2).toFixed(1))))} disabled={zoom >= 2.4}>
+            放大
+          </button>
+        </div>
+      </div>
+      <div className="manual-page-shell">
+        <button
+          type="button"
+          aria-label="上一页"
+          className="manual-nav-btn manual-nav-prev"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={!canPrev}
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          aria-label="下一页"
+          className="manual-nav-btn manual-nav-next"
+          onClick={() => setPage((p) => Math.min(pages.length, p + 1))}
+          disabled={!canNext}
+        >
+          ›
+        </button>
+        <div className="manual-page-scroll">
+          <div
+            ref={pageScrollRef}
+            className="manual-page-content"
+            onTouchStart={(e) => {
+              if (zoom > 1) {
+                setTouchStart(null)
+                return
+              }
+              const t = e.touches?.[0]
+              if (!t) return
+              setTouchStart({ x: t.clientX, y: t.clientY })
+            }}
+            onTouchEnd={(e) => {
+              if (zoom > 1) {
+                setTouchStart(null)
+                return
+              }
+              const t = e.changedTouches?.[0]
+              if (!t || !touchStart) return
+              const scroller = pageScrollRef.current
+              if (scroller) {
+                const maxX = scroller.scrollWidth - scroller.clientWidth
+                if (maxX > 0 && scroller.scrollLeft > 4 && scroller.scrollLeft < maxX - 4) {
+                  setTouchStart(null)
+                  return
+                }
+              }
+              const dx = t.clientX - touchStart.x
+              const dy = t.clientY - touchStart.y
+              const absX = Math.abs(dx)
+              const absY = Math.abs(dy)
+              setTouchStart(null)
+              if (absX < 60 || absY > 40 || absY >= absX * 0.6) return
+              if (dx < 0 && canNext) {
+                setPage((p) => Math.min(pages.length, p + 1))
+              } else if (dx > 0 && canPrev) {
+                setPage((p) => Math.max(1, p - 1))
+              }
+            }}
+          >
+            {rendering && <div className="manual-tip">正在渲染 PDF 页面...</div>}
+            {!rendering && renderError && <div className="status error">{renderError}</div>}
+            {!rendering && !renderError && imageSrc && (
+              <img
+                className="manual-pdf-page"
+                src={imageSrc}
+                alt={`手册第 ${page} 页`}
+                style={{ width: `${Math.round(zoom * 100)}%` }}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </section>
   )
 }
@@ -273,6 +439,8 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [questions, setQuestions] = useState([])
+  const [pages, setPages] = useState([])
+  const [toc, setToc] = useState([])
   const [version, setVersion] = useState('')
   const [tab, setTab] = useState('manual')
 
@@ -286,6 +454,8 @@ export default function App() {
       .then((data) => {
         if (!mounted) return
         setQuestions(data.questions)
+        setPages(Array.isArray(data.pages) ? data.pages : [])
+        setToc(Array.isArray(data.toc) ? data.toc : [])
         setVersion(data.generatedAt || String(Date.now()))
         setLoading(false)
       })
@@ -337,7 +507,7 @@ export default function App() {
 
       {!loading && !error && tab === 'manual' && (
         <main className="manual-only">
-          <ManualPdf />
+          <ManualReader pages={pages} toc={toc} version={version} />
         </main>
       )}
 
