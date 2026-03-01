@@ -1,0 +1,326 @@
+.question-page-img {
+  display: block;
+  width: auto;
+  max-width: 320px;
+  max-height: 140px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin: 4px 0 10px;
+}
+
+.quiz-page {
+  margin: 12px;
+  padding: 12px 12px calc(12px + var(--safe-bottom));
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  scroll-padding-bottom: calc(16px + var(--safe-bottom));
+}
+
+.exam-page {
+  padding-top: 0;
+}
+
+.practice-page {
+  padding-top: 0;
+}
+
+.quiz-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 0 14px;
+  color: var(--muted);
+}
+
+.exam-summary {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 10px 12px 12px;
+  margin: 0 -12px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.practice-summary {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  align-items: center;
+  padding: 10px 12px 12px;
+  margin: 0 -12px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.exam-summary > div {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+.exam-summary button,
+.practice-summary button,
+.question-actions button {
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.exam-summary button,
+.practice-summary button {
+  margin-left: auto;
+}
+
+.question-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fcfeff;
+}
+
+.question-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.question-page-note {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0 10px;
+}
+
+.options {
+  display: grid;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.option:hover {
+  border-color: var(--brand);
+  background: #f3f9ff;
+}
+
+.option.locked {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.option input {
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.option input:disabled {
+  cursor: not-allowed;
+}
+
+.option span {
+  cursor: pointer;
+}
+
+.option.locked span {
+  cursor: default;
+}
+
+.question-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.question-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.bad {
+  color: var(--bad);
+  font-weight: 600;
+}
+
+.neutral {
+  color: var(--muted);
+}
+
+.fireworks {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1200;
+  overflow: hidden;
+}
+
+.firework,
+.firework::before,
+.firework::after {
+  --initial-size: 0.8vmin;
+  --final-size: 80vmin;
+  --particle-size: 0.2vmin;
+  --color1: hsl(var(--h), 100%, 62%);
+  --color2: hsl(calc(var(--h) + 45), 95%, 62%);
+  --color3: hsl(calc(var(--h) + 90), 95%, 64%);
+  --color4: hsl(calc(var(--h) + 135), 96%, 63%);
+  --color5: hsl(calc(var(--h) + 180), 94%, 65%);
+  --color6: hsl(calc(var(--h) + 225), 93%, 63%);
+  --color7: hsl(calc(var(--h) + 270), 95%, 64%);
+  --color8: hsl(calc(var(--h) + 315), 96%, 64%);
+  content: "";
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--initial-size);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  background:
+    radial-gradient(circle, var(--color1) var(--particle-size), #0000 0) 50% 0%,
+    radial-gradient(circle, var(--color2) var(--particle-size), #0000 0) 100% 50%,
+    radial-gradient(circle, var(--color3) var(--particle-size), #0000 0) 50% 100%,
+    radial-gradient(circle, var(--color4) var(--particle-size), #0000 0) 0% 50%,
+    radial-gradient(circle, var(--color5) var(--particle-size), #0000 0) 85% 15%,
+    radial-gradient(circle, var(--color6) var(--particle-size), #0000 0) 15% 85%,
+    radial-gradient(circle, var(--color7) var(--particle-size), #0000 0) 80% 80%,
+    radial-gradient(circle, var(--color8) var(--particle-size), #0000 0) 20% 20%;
+  background-size: var(--initial-size) var(--initial-size);
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
+  animation: firework 1.4s linear infinite;
+  animation-delay: var(--d);
+}
+
+.firework::before {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(32deg) scale(1.28) !important;
+}
+
+.firework::after {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-38deg) scale(1.2) !important;
+}
+
+@keyframes firework {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 42vh);
+    width: var(--initial-size);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  45% {
+    transform: translate(-50%, -50%);
+    width: var(--initial-size);
+    opacity: 1;
+  }
+
+  100% {
+    width: var(--final-size);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .quiz-page {
+    overflow-x: hidden;
+  }
+
+  .practice-summary,
+  .exam-summary {
+    margin: 0 0 12px;
+  }
+
+  .exam-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    align-items: start;
+    padding: 8px 10px 10px;
+    font-size: 13px;
+  }
+
+  .exam-summary > div {
+    min-height: 0;
+    line-height: 1.35;
+  }
+
+  .exam-summary > div:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .exam-summary button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+    padding: 7px 10px;
+  }
+
+  .practice-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    align-items: start;
+    padding: 8px 10px 10px;
+    font-size: 13px;
+  }
+
+  .practice-summary > div {
+    min-height: 0;
+    line-height: 1.35;
+  }
+
+  .practice-summary button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+    padding: 7px 10px;
+  }
+
+  .question-title,
+  .option span {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fireworks {
+    display: none;
+  }
+}

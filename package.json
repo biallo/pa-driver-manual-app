@@ -1,7 +1,7 @@
 {
   "name": "pa-driver-manual-app",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
