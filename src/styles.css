@@ -430,6 +430,50 @@ body {
     margin: 0 0 12px;
   }
 
+  .exam-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    align-items: start;
+    padding: 8px 10px 10px;
+    font-size: 13px;
+  }
+
+  .exam-summary > div {
+    min-height: 0;
+    line-height: 1.35;
+  }
+
+  .exam-summary > div:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .exam-summary button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+    padding: 7px 10px;
+  }
+
+  .practice-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    align-items: start;
+    padding: 8px 10px 10px;
+    font-size: 13px;
+  }
+
+  .practice-summary > div {
+    min-height: 0;
+    line-height: 1.35;
+  }
+
+  .practice-summary > div:last-child {
+    grid-column: 1 / -1;
+  }
+
   .question-title,
   .option span {
     overflow-wrap: anywhere;
