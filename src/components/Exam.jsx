@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   EXAM_PASS_SCORE,
-  EXAM_QUESTION_COUNT,
-  IMAGE_QUESTION_SET,
-  STORAGE_KEYS
+  EXAM_QUESTION_COUNT
 } from '../constants/app'
-import { questionImagePath } from '../lib/assets'
 import { pickByAllowedKeys, readStoredJson, saveStoredJson } from '../lib/storage'
 import ConfettiCanvas from './common/ConfettiCanvas'
 import PageImage from './common/PageImage'
@@ -19,7 +16,7 @@ function pickRandomQuestions(questions, count) {
   return pool.slice(0, Math.min(count, pool.length))
 }
 
-export default function Exam({ questions, version, scrollContainerRef }) {
+export default function Exam({ questions, version, scrollContainerRef, storageKey, text }) {
   const optionOrder = ['A', 'B', 'C', 'D']
   const eligible = useMemo(
     () =>
@@ -29,15 +26,15 @@ export default function Exam({ questions, version, scrollContainerRef }) {
     [questions]
   )
   const [examIds, setExamIds] = useState(() => {
-    const saved = readStoredJson(STORAGE_KEYS.exam, {})
+    const saved = readStoredJson(storageKey, {})
     return Array.isArray(saved.examIds) ? saved.examIds.map(String) : []
   })
   const [selected, setSelected] = useState(() => {
-    const saved = readStoredJson(STORAGE_KEYS.exam, {})
+    const saved = readStoredJson(storageKey, {})
     return saved.selected && typeof saved.selected === 'object' ? saved.selected : {}
   })
   const [submitted, setSubmitted] = useState(() => {
-    const saved = readStoredJson(STORAGE_KEYS.exam, {})
+    const saved = readStoredJson(storageKey, {})
     return saved.submitted && typeof saved.submitted === 'object' ? saved.submitted : {}
   })
   const restoredScrollRef = useRef(false)
@@ -83,7 +80,7 @@ export default function Exam({ questions, version, scrollContainerRef }) {
   useEffect(() => {
     const scroller = scrollContainerRef?.current
     if (!scroller || restoredScrollRef.current || examQuestions.length === 0) return
-    const saved = readStoredJson(STORAGE_KEYS.exam, {})
+    const saved = readStoredJson(storageKey, {})
     const scrollTop = Number(saved.scrollTop)
     if (Number.isFinite(scrollTop) && scrollTop > 0) {
       requestAnimationFrame(() => {
@@ -91,24 +88,24 @@ export default function Exam({ questions, version, scrollContainerRef }) {
       })
     }
     restoredScrollRef.current = true
-  }, [examQuestions.length, scrollContainerRef])
+  }, [examQuestions.length, scrollContainerRef, storageKey])
 
   useEffect(() => {
     const scrollTop = scrollContainerRef?.current?.scrollTop || 0
-    saveStoredJson(STORAGE_KEYS.exam, { examIds, selected, submitted, scrollTop })
-  }, [examIds, selected, submitted, scrollContainerRef])
+    saveStoredJson(storageKey, { examIds, selected, submitted, scrollTop })
+  }, [examIds, selected, storageKey, submitted, scrollContainerRef])
 
   useEffect(() => {
     const scroller = scrollContainerRef?.current
     if (!scroller) return undefined
     const onScroll = () => {
-      saveStoredJson(STORAGE_KEYS.exam, { examIds, selected, submitted, scrollTop: scroller.scrollTop })
+      saveStoredJson(storageKey, { examIds, selected, submitted, scrollTop: scroller.scrollTop })
     }
     scroller.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       scroller.removeEventListener('scroll', onScroll)
     }
-  }, [examIds, selected, submitted, scrollContainerRef])
+  }, [examIds, selected, storageKey, submitted, scrollContainerRef])
 
   const restartExam = () => {
     const nextIds = pickRandomQuestions(eligible, EXAM_QUESTION_COUNT).map((q) => String(q.id))
@@ -117,7 +114,7 @@ export default function Exam({ questions, version, scrollContainerRef }) {
     setSubmitted({})
     const scroller = scrollContainerRef?.current
     if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' })
-    saveStoredJson(STORAGE_KEYS.exam, { examIds: nextIds, selected: {}, submitted: {}, scrollTop: 0 })
+    saveStoredJson(storageKey, { examIds: nextIds, selected: {}, submitted: {}, scrollTop: 0 })
   }
 
   const score = useMemo(() => {
@@ -131,7 +128,7 @@ export default function Exam({ questions, version, scrollContainerRef }) {
   const answered = useMemo(() => examQuestions.filter((q) => submitted[q.id]).length, [examQuestions, submitted])
   const finished = examQuestions.length > 0 && answered === examQuestions.length
   const passed = score >= EXAM_PASS_SCORE
-  const resultText = passed ? '考试通过' : finished ? '考试未通过' : '进行中'
+  const resultText = passed ? text.exam.passed : finished ? text.exam.failed : text.exam.inProgress
   const resultClass = passed ? 'ok' : finished ? 'bad' : 'neutral'
 
   return (
@@ -139,15 +136,15 @@ export default function Exam({ questions, version, scrollContainerRef }) {
       {passed && <ConfettiCanvas active={passed} />}
 
       <div className="quiz-summary exam-summary">
-        <div>考试题数: {examQuestions.length}</div>
-        <div>已作答: {answered}</div>
-        <div>当前正确: {score}</div>
-        <div>通过标准: {EXAM_PASS_SCORE} 题</div>
+        <div>{text.exam.count(examQuestions.length)}</div>
+        <div>{text.exam.answered(answered)}</div>
+        <div>{text.exam.correct(score)}</div>
+        <div>{text.exam.pass(EXAM_PASS_SCORE)}</div>
         <div>
-          结果: <span className={resultClass}>{resultText}</span>
+          {text.exam.result}: <span className={resultClass}>{resultText}</span>
         </div>
         <button type="button" onClick={restartExam}>
-          重新开始
+          {text.exam.restart}
         </button>
       </div>
 
@@ -155,14 +152,18 @@ export default function Exam({ questions, version, scrollContainerRef }) {
         const choice = selected[q.id]
         const done = !!submitted[q.id]
         const ok = done && choice === q.correct
-        const image = IMAGE_QUESTION_SET.has(q.questionNo) ? questionImagePath(q.questionNo) : null
+        const image = q.image || null
 
         return (
           <div className="question-card" key={q.id}>
             <div className="question-title">
               {index + 1}. {q.stem}
             </div>
-            <PageImage image={image} version={version} />
+            <PageImage
+              image={image}
+              version={version}
+              alt={text.quiz.questionImageAlt(q.questionNo)}
+            />
             <div className="options">
               {optionOrder
                 .filter((key) => q.options[key])
@@ -190,7 +191,7 @@ export default function Exam({ questions, version, scrollContainerRef }) {
             <div className="question-actions">
               {done && (
                 <span className={ok ? 'ok' : 'bad'}>
-                  {ok ? '回答正确' : `回答错误，正确答案: ${q.correct}`}
+                  {ok ? text.exam.correctFeedback : text.exam.incorrectFeedback(q.correct)}
                 </span>
               )}
             </div>

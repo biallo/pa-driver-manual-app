@@ -2,6 +2,10 @@
   <img src="./public/app-icon.png" alt="app-icon" width="120" />
 </p>
 
+<p align="center">
+  中文 | <a href="./README.en.md">English</a>
+</p>
+
 <h1 align="center">宾夕法尼亚驾驶手册学习与考试</h1>
 
 <br/>

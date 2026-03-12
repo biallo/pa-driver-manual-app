@@ -10,6 +10,16 @@ export function readStoredJson(key, fallback) {
   }
 }
 
+export function readStoredString(key, fallback) {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const value = window.localStorage.getItem(key)
+    return typeof value === 'string' && value ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export function saveStoredJson(key, value) {
   if (typeof window === 'undefined') return
   try {

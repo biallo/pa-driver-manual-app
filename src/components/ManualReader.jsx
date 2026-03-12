@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PDF_URL, STORAGE_KEYS } from '../constants/app'
 import { assetUrl, withVersion } from '../lib/assets'
 import { readStoredNumber } from '../lib/storage'
 
-export default function ManualReader({ pages, toc, version }) {
+export default function ManualReader({ pages, toc, version, pdfUrl, storageKey, text }) {
   const isMobile = useMemo(() => {
     if (typeof window === 'undefined') return false
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -13,7 +12,7 @@ export default function ManualReader({ pages, toc, version }) {
     return uaMobile || (smallViewport && coarsePointer)
   }, [])
   const isDesktop = !isMobile
-  const [page, setPage] = useState(() => readStoredNumber(STORAGE_KEYS.manualPage, 1))
+  const [page, setPage] = useState(() => readStoredNumber(storageKey, 1))
   const desktopScrollRef = useRef(null)
   const desktopThumbsRef = useRef(null)
   const desktopThumbRefs = useRef([])
@@ -73,11 +72,11 @@ export default function ManualReader({ pages, toc, version }) {
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
-      window.localStorage.setItem(STORAGE_KEYS.manualPage, String(page))
+      window.localStorage.setItem(storageKey, String(page))
     } catch {
       // Ignore storage write failures.
     }
-  }, [page])
+  }, [page, storageKey])
 
   useEffect(() => {
     if (!pages.length) return undefined
@@ -160,7 +159,7 @@ export default function ManualReader({ pages, toc, version }) {
   useEffect(() => {
     if (!isDesktop || !pages.length) return undefined
     let cancelled = false
-    const pdfSrc = assetUrl(withVersion(PDF_URL, version))
+    const pdfSrc = assetUrl(withVersion(pdfUrl, version))
 
     setDesktopRenderError('')
     import('../lib/pdfParser')
@@ -182,18 +181,18 @@ export default function ManualReader({ pages, toc, version }) {
       })
       .catch((e) => {
         if (cancelled) return
-        setDesktopRenderError(e?.message || 'PDF 缩略图渲染失败')
+        setDesktopRenderError(e?.message || text.manual.previewFailed)
       })
 
     return () => {
       cancelled = true
     }
-  }, [isDesktop, pages, version])
+  }, [isDesktop, pages, pdfUrl, text.manual.previewFailed, version])
 
   useEffect(() => {
     if (!pages.length) return
     let cancelled = false
-    const pdfSrc = assetUrl(withVersion(PDF_URL, version))
+    const pdfSrc = assetUrl(withVersion(pdfUrl, version))
     const pageScale = isMobile ? 1.25 : 1.65
     const targets = []
     for (let p = page - 2; p <= page + 2; p += 1) {
@@ -212,18 +211,18 @@ export default function ManualReader({ pages, toc, version }) {
       })
       .catch((e) => {
         if (cancelled) return
-        setDesktopRenderError(e?.message || 'PDF 页面渲染失败')
+        setDesktopRenderError(e?.message || text.manual.pageFailed)
       })
 
     return () => {
       cancelled = true
     }
-  }, [isMobile, page, pages.length, version])
+  }, [isMobile, page, pages.length, pdfUrl, text.manual.pageFailed, version])
 
   const tocOptions = toc.length
     ? toc
     : pages.map((item) => ({
-        title: `第 ${item.page} 页`,
+        title: text.manual.pageTitle(item.page),
         page: item.page
       }))
 
@@ -242,7 +241,7 @@ export default function ManualReader({ pages, toc, version }) {
   if (!pages.length) {
     return (
       <section className="manual-reader">
-        <p className="manual-tip">手册内容暂不可用，请稍后重试。</p>
+        <p className="manual-tip">{text.manual.unavailable}</p>
       </section>
     )
   }
@@ -263,12 +262,12 @@ export default function ManualReader({ pages, toc, version }) {
                 desktopThumbRefs.current[idx] = el
               }}
             >
-              <span className="manual-thumb-no">第 {item.page} 页</span>
+              <span className="manual-thumb-no">{text.manual.pageTitle(item.page)}</span>
               <div className="manual-thumb-box">
                 {thumb ? (
-                  <img className="manual-thumb-img" src={thumb} alt={`第 ${item.page} 页缩略图`} />
+                  <img className="manual-thumb-img" src={thumb} alt={text.manual.pageThumbAlt(item.page)} />
                 ) : (
-                  <div className="manual-thumb-placeholder">加载中...</div>
+                  <div className="manual-thumb-placeholder">{text.manual.thumbLoading}</div>
                 )}
               </div>
             </button>
@@ -277,7 +276,7 @@ export default function ManualReader({ pages, toc, version }) {
       </aside>
       <section className="manual-desktop-main">
         <div className="manual-toolbar manual-toolbar-desktop">
-          <select aria-label="目录跳转" value={page} onChange={(e) => jumpToDesktopPage(Number(e.target.value), 'auto')}>
+          <select aria-label={text.manual.jumpLabel} value={page} onChange={(e) => jumpToDesktopPage(Number(e.target.value), 'auto')}>
             {tocOptions.map((item, idx) => (
               <option key={`${item.page}-${idx}`} value={item.page}>
                 {item.title}
@@ -285,7 +284,7 @@ export default function ManualReader({ pages, toc, version }) {
             ))}
           </select>
           <div className="manual-desktop-page-indicator">
-            共 {pages.length} 页
+            {text.manual.pageCount(pages.length)}
           </div>
         </div>
         {desktopRenderError && <div className="status error">{desktopRenderError}</div>}
@@ -300,12 +299,12 @@ export default function ManualReader({ pages, toc, version }) {
                   desktopPageRefs.current[idx] = el
                 }}
               >
-                <div className="manual-desktop-page-no">第 {item.page} 页</div>
+                <div className="manual-desktop-page-no">{text.manual.pageTitle(item.page)}</div>
                 <div className="manual-desktop-page-box">
                   {img ? (
-                    <img className="manual-desktop-page-img" src={img} alt={`手册第 ${item.page} 页`} />
+                    <img className="manual-desktop-page-img" src={img} alt={text.manual.pageAlt(item.page)} />
                   ) : (
-                    <div className="manual-desktop-page-loading">正在加载该页...</div>
+                    <div className="manual-desktop-page-loading">{text.manual.pageLoading}</div>
                   )}
                 </div>
               </article>

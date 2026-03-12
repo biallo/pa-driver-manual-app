@@ -1,11 +1,28 @@
 export const DATA_URL = '/data/manual-static.json'
+export const DATA_URL_EN = '/data/manual-static-en.json'
 export const PDF_URL = '/manual.pdf'
-export const IMAGE_QUESTION_IDS = [1, 2, 3, 4, 5, 6, 9, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 41, 42, 43, 44, 45, 52, 53, 55, 56, 58, 88, 98, 99, 123]
-export const IMAGE_QUESTION_SET = new Set(IMAGE_QUESTION_IDS)
+export const PDF_URL_EN = '/manual-en.pdf'
 export const EXAM_QUESTION_COUNT = 18
 export const EXAM_PASS_SCORE = 15
+export const DEFAULT_LOCALE = 'zh'
+
+export const DATA_SOURCES = {
+  zh: {
+    type: 'static',
+    dataUrl: DATA_URL,
+    pdfUrl: PDF_URL,
+    version: 'zh-static'
+  },
+  en: {
+    type: 'static',
+    dataUrl: DATA_URL_EN,
+    pdfUrl: PDF_URL_EN,
+    version: 'en-static'
+  }
+}
 
 export const STORAGE_KEYS = {
+  language: 'pa-driver-manual.language',
   manualPage: 'pa-driver-manual.manual-page',
   quiz: 'pa-driver-manual.quiz-state',
   exam: 'pa-driver-manual.exam-state'
