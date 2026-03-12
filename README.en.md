@@ -13,7 +13,7 @@
 Live preview: [https://biallo.github.io/pa-driver-manual-app/](https://biallo.github.io/pa-driver-manual-app/)
 
 Desktop releases: [https://github.com/biallo/pa-driver-manual-app/releases](https://github.com/biallo/pa-driver-manual-app/releases)
-`<br/>`
+<br/>
 Available for Mac, Windows, and Linux. Can be used offline.
 
 > On macOS, you may see a warning that "The App cannot be verified" or "The developer cannot be identified". `<br/>`
