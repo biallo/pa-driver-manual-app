@@ -25,9 +25,9 @@ Available for Mac, Windows, and Linux. Can be used offline.
 ## Screenshots
 
 <p align="center">
-  <img src="./public/screenshot/screenshot-1.png" alt="practice page" width="32%" />
-  <img src="./public/screenshot/screenshot-2.png" alt="question detail page" width="32%" />
-  <img src="./public/screenshot/screenshot-3.png" alt="exam mode page" width="32%" />
+  <img src="./public/screenshot/screenshot-en-1.png" alt="practice page" width="32%" />
+  <img src="./public/screenshot/screenshot-en-2.png" alt="question detail page" width="32%" />
+  <img src="./public/screenshot/screenshot-en-3.png" alt="exam mode page" width="32%" />
 </p>
 
 The project supports two ways of running:
