@@ -32,6 +32,12 @@ export default function App() {
   }, [locale])
 
   useEffect(() => {
+    if (typeof document === 'undefined') return
+    document.title = text.appTitle
+    document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN'
+  }, [locale, text.appTitle])
+
+  useEffect(() => {
     if (!languageMenuOpen) return undefined
 
     const onPointerDown = (event) => {
