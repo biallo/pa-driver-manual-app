@@ -16,10 +16,10 @@ Desktop releases: [https://github.com/biallo/pa-driver-manual-app/releases](http
 <br/>
 Available for Mac, Windows, and Linux. Can be used offline.
 
-> On macOS, you may see a warning that "The App cannot be verified" or "The developer cannot be identified". `<br/>`
+> On macOS, you may see a warning that "The App cannot be verified" or "The developer cannot be identified". <br/>
 > Open "System Settings" -> "Privacy & Security", find the security section, and click "Open Anyway".
 
-> The manual PDFs used by this project come from [https://www.pa.gov/agencies/dmv/driver-services/pennsylvania-drivers-manual](https://www.pa.gov/agencies/dmv/driver-services/pennsylvania-drivers-manual) `<br/>`
+> The manual PDFs used by this project come from [https://www.pa.gov/agencies/dmv/driver-services/pennsylvania-drivers-manual](https://www.pa.gov/agencies/dmv/driver-services/pennsylvania-drivers-manual) <br/>
 > Version: PUB 95 (4-21) English Version
 
 ## Screenshots
