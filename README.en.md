@@ -51,12 +51,19 @@ npm run desktop:dev
 
 ## 3) Build desktop packages
 
-Build by platform:
+Build by platform. The default macOS build is a Universal app that supports both Intel and Apple Silicon (M-series) Macs:
 
 ```bash
 npm run desktop:dist:mac
 npm run desktop:dist:win
 npm run desktop:dist:linux
+```
+
+To build a smaller, single-architecture macOS app:
+
+```bash
+npm run desktop:dist:mac:x64    # Intel
+npm run desktop:dist:mac:arm64  # Apple Silicon (M series)
 ```
 
 Build outputs are generated in the `release/` directory.

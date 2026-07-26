@@ -51,12 +51,19 @@ npm run desktop:dev
 
 ## 3) 打包桌面可执行文件
 
-可按系统分别打包：
+可按系统分别打包。macOS 默认生成 Universal 应用，同时支持 Intel 和 Apple Silicon（M 系列）芯片：
 
 ```bash
 npm run desktop:dist:mac
 npm run desktop:dist:win
 npm run desktop:dist:linux
+```
+
+如需生成体积更小的单架构 macOS 应用：
+
+```bash
+npm run desktop:dist:mac:x64    # Intel
+npm run desktop:dist:mac:arm64  # Apple Silicon (M 系列)
 ```
 
 产物在 `release/` 目录。
