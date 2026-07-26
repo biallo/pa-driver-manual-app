@@ -1,7 +1,7 @@
 {
   "name": "pa-driver-manual-app",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "PA Driver Manual App",
   "repository": {
     "type": "git",
